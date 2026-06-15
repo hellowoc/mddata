@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "x86_64编译运行全记录.md",
+                "file": "mqtt本地部署/编译运行命令速查.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "x86_64编译运行全记录"
+              "title": "编译运行命令速查"
             }
           }
         ]
@@ -78,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "72e87d7739e51c3d",
@@ -185,10 +186,13 @@
   },
   "active": "5b11b31df412def1",
   "lastOpenFiles": [
-    "所有修改汇总.md",
-    "编译运行命令速查.md",
+    "mqtt本地部署",
+    "mqtt本地部署/MQTT三方库部署-配置修改记录.md",
+    "mqtt详解",
+    "mqtt详解/x86_64编译运行全记录.md",
+    "mqtt详解/所有修改汇总.md",
+    "mqtt本地部署/编译运行命令速查.md",
     "欢迎.md",
-    "x86_64编译运行全记录.md",
     "色选机工程-所有修改汇总.md.tmp.5655.9b90ee648b07"
   ]
 }
