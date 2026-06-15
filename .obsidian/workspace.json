@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "mqtt本地部署/编译运行命令速查.md",
+                "file": "mqtt本地部署/MQTT三方库部署-配置修改记录.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "编译运行命令速查"
+              "title": "MQTT三方库部署-配置修改记录"
             }
           }
         ]
@@ -186,12 +186,15 @@
   },
   "active": "5b11b31df412def1",
   "lastOpenFiles": [
+    "mqtt本地部署/独立配置功能的通用方法.md",
+    "mqtt本地部署/独立配置功能的通用方法.md.tmp.70739.a44b005e4a5c",
+    "mqtt本地部署/代码修改规范.md",
+    "mqtt本地部署/编译运行命令速查.md",
     "mqtt本地部署",
     "mqtt本地部署/MQTT三方库部署-配置修改记录.md",
     "mqtt详解",
     "mqtt详解/x86_64编译运行全记录.md",
     "mqtt详解/所有修改汇总.md",
-    "mqtt本地部署/编译运行命令速查.md",
     "欢迎.md",
     "色选机工程-所有修改汇总.md.tmp.5655.9b90ee648b07"
   ]
