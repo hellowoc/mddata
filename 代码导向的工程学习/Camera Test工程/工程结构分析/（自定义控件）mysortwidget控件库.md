@@ -29,7 +29,7 @@ QObject
               └── BaseArithWidget ← 算法模式选择基类（QButtonGroup）
 ```
 
-### BaseUi — 所有 UI 的公共根[[BaseUi_paintEvent详解]] 
+### BaseUi — 所有 UI 的公共根[[2026.1前/BaseUi_paintEvent详解]] 
 
 ```cpp
 class BaseUi : public QWidget {

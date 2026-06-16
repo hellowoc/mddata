@@ -11,7 +11,7 @@ QObject
               └── ZKSort          ← 主窗口
 ```
 
-### BaseUi 做了什么[[QPainter详解]]
+### BaseUi 做了什么[[2026.1前/QPainter详解]]
 
 ```cpp
 class BaseUi : public QWidget
@@ -39,7 +39,7 @@ protected:
 };
 ```
 
-BaseUi 是 ZKSort 和所有其他页面 widget 的共同父类，提供两个通用能力：语言切换时自动刷新界面 + QSS 样式渲染支持。[[QSS样式渲染详解]]
+BaseUi 是 ZKSort 和所有其他页面 widget 的共同父类，提供两个通用能力：语言切换时自动刷新界面 + QSS 样式渲染支持。[[2026.1前/QSS样式渲染详解]]
 
 ---
 
@@ -62,7 +62,7 @@ BaseUi 是 ZKSort 和所有其他页面 widget 的共同父类，提供两个通
 ```
 
 三个区域用 `QVBoxLayout` 垂直排列，间距 1px，边距全部为 0（全屏贴边）。`QStackedWidget` 是 Qt 的页面栈控件，同一时刻只显示一个页面，切换时只换中间区域，顶部和底部不变。
-[[Qt绘图与窗口机制入门]]
+[[2026.1前/Qt绘图与窗口机制入门]]
 
 ---
 
@@ -119,7 +119,7 @@ ZKSort::ZKSort(QWidget *parent) :
 }
 ```
 在6中将窗口的控制权交给了[[4 （界面管理）MiddleWidgetManager]]也就是说，在构造这类的时候，就已经完成了窗口的托管
-[[代码导向的工程学习/QT对象/QSettings]]
+[[references/QT对象/QT类/QSettings]]
 ---
 
 ## 四、成员函数分类

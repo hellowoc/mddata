@@ -126,7 +126,7 @@ Log4Qt::PropertyConfigurator::configure(qtlogProper);
 
 ---
 
-## 阶段 7：资源加载 + 全局初始化[[QDesktopWidget详解]]
+## 阶段 7：资源加载 + 全局初始化[[2026.1前/QDesktopWidget详解]]
 
 ```cpp
 QDesktopWidget* desktop = QApplication::desktop();
@@ -146,7 +146,7 @@ g_myLan().ChangeLanguage();       // 应用语言切换
 
 ---
 
-## 阶段 8：显示主窗口 + 进入事件循环[[exec事件循环详解]]
+## 阶段 8：显示主窗口 + 进入事件循环[[2026.1前/exec事件循环详解]]
 
 ```cpp
 // 将信息提示框居中
