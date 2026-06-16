@@ -6,15 +6,15 @@
 
 ### setRawHeader — 自定义头
 
-| 头名称             | 值                    | 作用                                                                             | 出现位置                                                                                        |
-| --------------- | -------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `Authorization` | `Basic YXBpOmFwaQ==` | HTTP Basic Auth。`YXBpOmFwaQ==` 是用户名密码 `api:api` 的 Base64 编码。用于还没有 Token 时的身份验证 | `requestToken`、`requestTokenUpdate`                                                         |
-| `Authorization` | `Bearer {g_token}`   | Bearer Token 认证。`g_token` 是已获取的 OAuth2 令牌，服务器通过它识别设备身份                         | `upLoadFile`、`upLoadData`、`requestOssUploadSign`、`requestModelLableList`、`requestModelList` |
-| `TENANT_ID`     | `1`                  | 租户编号。云端服务器按租户隔离数据。本工程写死 `"1"`                                                  | 除 `downLoadFile` 和 `canWebsiteVisit` 外的所有函数                                                 |
-| `client_id`     | `7BIp1rTdiM...`      | OAuth2 客户端 ID，Base64 编码的固定凭证。与 `client_secret` 配对                              | 仅 `requestToken`                                                                            |
-| `client_secret` | `7BIp1rTdiM...`      | OAuth2 客户端密钥                                                                   | 仅 `requestToken`                                                                            |
-| `User-Agent`    | `MyOwnBrowser 1.0`   | 标识 HTTP 客户端的类型，服务器可据此区分请求来源                                                    | `downLoadFile`                                                                              |
-| `Range`         | `bytes=已下载-`         | HTTP 断点续传头。告诉服务器从指定字节偏移之后开始传输                                                  | `httpDownloadManager`                                                                       |
+| 头名称 | 值 | 作用 | 出现位置 |
+|------|------|------|---------|
+| `Authorization` | `Basic YXBpOmFwaQ==` | HTTP Basic Auth。`YXBpOmFwaQ==` 是用户名密码 `api:api` 的 Base64 编码。用于还没有 Token 时的身份验证 | `requestToken`、`requestTokenUpdate` |
+| `Authorization` | `Bearer {g_token}` | Bearer Token 认证。`g_token` 是已获取的 OAuth2 令牌，服务器通过它识别设备身份 | `upLoadFile`、`upLoadData`、`requestOssUploadSign`、`requestModelLableList`、`requestModelList` |
+| `TENANT_ID` | `1` | 租户编号。云端服务器按租户隔离数据。本工程写死 `"1"` | 除 `downLoadFile` 和 `canWebsiteVisit` 外的所有函数 |
+| `client_id` | `7BIp1rTdiM...` | OAuth2 客户端 ID，Base64 编码的固定凭证。与 `client_secret` 配对 | 仅 `requestToken` |
+| `client_secret` | `7BIp1rTdiM...` | OAuth2 客户端密钥 | 仅 `requestToken` |
+| `User-Agent` | `MyOwnBrowser 1.0` | 标识 HTTP 客户端的类型，服务器可据此区分请求来源 | `downLoadFile` |
+| `Range` | `bytes=已下载-` | HTTP 断点续传头。告诉服务器从指定字节偏移之后开始传输 | `httpDownloadManager` |
 
 ### setHeader — 标准 HTTP 头
 
