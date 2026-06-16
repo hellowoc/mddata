@@ -1,0 +1,68 @@
+在qt5环境下运行时存在诸多环境问题，
+qt4.8.7适配的mingw环境已配好，该版本需要翻墙通过官网下载
+qt4.8.4同样需要翻墙下载，mingw环境已配好
+
+改为在qt4.8.7环境下运行，仍存在诸多问题
+
+在qt4.8.4配合mingw4.2下运行，环境问题基本解决
+
+但是由于mingw编译器过于古老，一些写法存在问题不兼容问题，通过ai进行了修改
+
+一些功能在window不需要实现，例如各种通信，这里进行了屏蔽和修改，对于一些函数进行了空定义
+svminagewidget.cpp：
+屏蔽整个SvmLearnThread::run()函数
+modelselectwidget.cpp 69 屏蔽
+myqextserialport.cpp/.h文件中均进行了一些修改和空定义
+
+/*************************************************************************************************************
+ * change by zcy 2026.5.28    (.cpp)
+ * ************************************************************************************************************/
+int sendCom2Cmd(char *data)
+{return 0;}
+void pushCom2CmdData(int nCmd, char intAddr, char boardType,  char boardAddr, char *data, int nCount)  //经过消息队列，再调用串口发送函数
+{}
+void com2WriteDirect(int nCmd, char intAddr, char boardType,  char boardAddr, char *data, int nCount)  //直接调用的串口发送函数，喷阀自检命令
+{}
+
+/*************************************************************************************************************
+     * change by zcy 2026.5.28  (.h)
+     * ************************************************************************************************************/
+    int sendCom2Cmd(char *data);
+    void pushCom2CmdData(int nCmd, char intAddr, char boardType,  char boardAddr, char *data, int nCount);  //经过消息队列，再调用串口发送函数
+    void com2WriteDirect(int nCmd, char intAddr, char boardType,  char boardAddr, char *data, int nCount);  //直接调用的串口发送函数，喷阀自检命令
+
+aichange1
+myfastnetwork.cpp 已修复，加上了 (const char*) 强制类型转换。mynetwork.cpp 已经用 #ifdef Q_OS_UNIX / #else 正确处理了跨平台兼容，不需要改动。
+aichange2
+这是因为 Windows 的 WinSock2 API 中 setsockopt 的第4个参数类型是 const char*，而 Unix 上是 const void*，所以 Windows 下必须显式转换。可以重新编译了。
+change2将文件中关于编译器不兼容的问题完成了修改，对于其他内容没有修改过，因此可以作为回退的锚点版本
+
+aichange3
+myqextserialport.cpp:2670-2675 — 全局函数加上了 MyQextSerialPort:: 前缀，变成成员函数桩
+新建 3rdparty/svm/wheat_stub.cpp — 提供 Wheat::Wheat_Main 空实现（原 libWheat.a 是 Linux/ARM 库，Windows 无法链接）
+zksort.pro:544 — 在 win32 块中添加 wheat_stub.cpp 到编译列表
+aichange4
+新建 3rdparty/svm/svmtool_stub.cpp — 四个全局函数的空桩（train 返回失败，isBad 返回 false，shape_sampling/shape_classify 空操作）
+zksort.pro — 将 svmtool_stub.cpp 加入 win32 编译列表，移除了 -lsvmtool 链接（那个 .a 是 MSVC 编译的，MinGW 无法链接其 MSVC 运行时依赖 __ms_vsnprintf）
+
+运行后不显示窗口，程序异常结束 ，回退到aichange3之前的版本
+
+重新修改
+发现问题在
+现在看到具体错误了——就是之前的 __ms_vsnprintf 问题。libsvmtool.a 是 MSVC 编译的，MinGW 无法链接。重新应用修复：用桩函数替代 MSVC 库
+解决：    SOURCES += $$PWD/../3rdparty/svm/wheat_stub.cpp
+    LIBS += -L$$PWD/../3rdparty/svm/win -lsvmtool
+  SOURCES += $$PWD/../3rdparty/svm/wheat_stub.cpp \
+               $$PWD/../3rdparty/svm/svmtool_stub.cpp
+    LIBS += -L$$PWD/../3rdparty/qrencode/lib/win32 -lqrencoded
+此时仍然存在问题，保留修改到这个位置的副本以做后续备用
+将版本回退到change3之前，保留版本，
+
+二次修改后任然存在问题，该工程是使用在mscv环境下设计的。接下来尝试安装mscv的环境
+
+尝试了一次在vs2010中直接构建，但是ide过于老旧，出现了报错，放弃该方案
+
+在msvc中，出现了上百个缺失分号，括号，结构体说明这类的格式问题，排查是什么原因导致的
+
+today try：把qt的各个版本尝试了，最终确定在4.8.4这个版本，然后mingw下有很多问题，解决不了
+ai给出建议，在msvc下运行，目前已经尝试到了在msvc中调试的过程。
