@@ -1,0 +1,303 @@
+# 通道2 IPC命令 — 基础知识清单
+
+按在 [[通道2-IPC命令-主文档|主文档]] 中首次出现的顺序排列。每个条目标明了在主文档的哪个章节首次出现。
+
+---
+
+## 第 1 章出现的
+
+### IPC AI 工控机（§1）
+
+**全称**：Industrial Personal Computer — 工业个人计算机。在这个工程里指的是运行 AI 深度学习推理的工控机。它接收相机图像，用 GPU 进行物料分类（"这是好米还是坏米"），把结果通过 UDP 发给上位机。
+
+与 "FPGA 相机板" 的区别：FPGA 做硬件层面的图像预处理和传统算法（速度快但简单），IPC 做 AI 推理（速度稍慢但能识别复杂特征）。
+
+---
+
+## 第 2 章出现的
+
+### QThread::start()（§2）
+
+`QThread` 的方法。调用后操作系统创建一个新的系统线程，新线程开始执行 `run()`。**非阻塞**——`start()` 立即返回，不等待 `run()` 执行完毕。
+
+### QThread::exec()（§2）
+
+`QThread` 的方法。在 `run()` 中调用后，线程进入 **Qt 事件循环**。事件循环是一个内部死循环，等待信号（如 `readyRead`、`timeout`）然后调用对应的槽函数。调用 `quit()` 后事件循环退出，`exec()` 返回。
+
+### 构造函数里调用 start()（§2）
+
+SendThread 的设计是"自启动"——在其构造函数中调用 `start()`，然后 `while(!m_bInit)` 忙等待。这意味着：
+- 外部 `new SendThread(parent)` 之后，线程已经在跑了
+- 构造函数直到线程初始化完成才返回
+
+这是为了让 `g_Udp.initSocket()` 调用后立刻能使用 UDP 发送功能。
+
+---
+
+## 第 3 章出现的
+
+### uint16_t（§3）
+
+C 语言标准类型，表示 **16 位无符号整数**（0 ~ 65535）。在 `<cstdint>` 中定义。Qt 等价的写法是 `quint16`。
+
+### 协议帧头 0xA5 0x5A（§3）
+
+两个"魔数"字节，用来标识"这是一个合法的 IPC 协议包"。收到 UDP 包后先检查前两个字节是否是 `0xA5 0x5A`，不是就丢弃。
+
+为什么是这两个值：任意选的，只要不太常见就行。`0xA5` = 165, `0x5A` = 90，二进制是 `10100101 01011010`，是一个明显的模式，不容易被随机数据误命中。
+
+### 包长 len_h/len_l 字段（§3）
+
+大端序（big-endian）存储的 16 位长度值。`len_h` 是高字节，`len_l` 是低字节。
+
+解码：`dataLen = len_h * 256 + len_l`
+
+例如 `len_h=0x00, len_l=0x10` → 长度 = 16 字节。
+
+"含 6 字节额外开销"意味着：如果数据载荷是 10 字节，包长字段写的是 16（10+6）。原因是协议设计者在计算的包长包含了某些固定开销。
+
+实际上从代码看 `head.len_h = (dataLen+6)/256`，所以确实是 dataLen + 6。
+
+### 序列号 seq（§3）
+
+每个发出的包都有一个递增的序号。用于**请求-应答匹配**——发出 seq=100 的包，收到 seq=100 的回包才能确认匹配。
+
+`udpPacketSeq` 是全局变量（`myudpthread.cpp:14`），每次发包后 +1。到 65530 后归零重新开始（因为 16 位最大值是 65535，留一点余量）。
+
+### CRC 校验（§3）
+
+CRC = Cyclic Redundancy Check（循环冗余校验）。传统 CRC 是一个复杂的多项式算法，但这个工程中用的是简化的**累加和**——把包头前 12 个字节的值直接相加。
+
+### 命令字 cmd（§3）
+
+16 位的命令编号。高字节 `cmd_h`，低字节 `cmd_l`。解码：`nCmd = cmd_h * 256 + cmd_l`。
+
+在 `processTheDatagram()` 中额外做了 `& 0x7fff`（掩掉最高位），因为协议设计者曾用最高位（bit15）表示"需要回包"。但实际上这个位现在没有用（被注释掉了）。
+
+---
+
+## 第 4 章出现的
+
+### pushUdpCmdData 的入参（§4-Step1）
+
+| 参数 | 类型 | 含义 |
+|------|------|------|
+| `nCmd` | `int` | 命令字，如 `0x0004` |
+| `needReturn` | `bool` | 是否需要 IPC 回包。`true` = 需要 |
+| `viewId` | `int` | 目标视野编号。`0x09` 是特殊值表示"全部相机" |
+| `unitId` | `int` | 目标单元编号。`0xff` 表示"全部单元" |
+| `dataLen` | `int` | 数据载荷的字节数 |
+| `data` | `unsigned char*` | 指向数据载荷的指针。可以为 `NULL`（没有数据时） |
+
+### struCnfg（§4-Step2）
+
+见 [[全局参数#struCnfg (struCnfGlobal)]]。
+
+### nViewBoardType（§4-Step2）
+
+`struCnfg.struLayerInfo[layer].nViewBoardType[view]`。存储第 layer 层第 view 个视野对应哪个硬件板卡。
+
+例如：`nViewBoardType[0] = 0x02` 表示视野 0 挂载在 board 0x02 上。这个值被写入 `udp_header.board_h`。
+
+### nViewUnitId（§4-Step2）
+
+`struCnfg.struLayerInfo[layer].stuViewInfo[view].nViewUnitId[unit]`。存储第 view 视野下第 unit 个单元的硬件编号。
+
+发送时 `board_l = nViewUnitId[unit] + 1`（+1 是因为硬件编号从 1 开始）。
+
+### udpPacketSeq（§4-Step2）
+
+全局变量（`myudpthread.cpp:14`），类型 `unsigned int`。每次 `pushUdpCmdData()` 调用后 +1。范围 0 ~ 65530，到上限后归零。
+
+### udp_header（§4-Step2）
+
+见 [[通道2-IPC命令-主文档#3. 协议头结构|主文档 §3]]。定义在 `myudpthread.h:82-106`。
+
+### udpSender（§4-Step2）
+
+`MyUdp` 的成员变量（`myudpthread.h:288`），类型 `SendThread*`。是 IPC 命令的发送线程对象。
+
+---
+
+## 第 4 章 Step 3 出现的
+
+### QByteArray（§4-Step3）
+
+见 [[references/Qt核心类型#QByteArray]]。
+
+### memcpy()（§4-Step3）
+
+见 [[references/C标准库函数#memcpy(dst, src, n)]]。
+
+### headSize（§4-Step3）
+
+`MyUdp` 的成员变量（`myudpthread.h:292`），类型 `quint16`。值 = `sizeof(udp_header)` = 14 字节。
+
+在 `MyUdp` 构造函数中赋值（`myudpthread.cpp:24`）：
+```cpp
+headSize = sizeof(udp_header);
+```
+
+### CMD_UDP_HT_GET_CAM_IMAGE_INFO（§4-Step3）
+
+命令字宏（`myudpthread.h:40`），值 = `0x5007`。**查询相机图像信息**。这个命令走 FastNetObj（eth1）而非 BackgroudObj（eth0）。
+
+### CMD_UDP_HT_GET_FAST_CAPTURE（§4-Step3）
+
+命令字宏（`myudpthread.h:39`），值 = `0x5006`。**启动高速抓图**。也走 FastNetObj（eth1）。
+
+---
+
+## 第 4 章 Step 4 出现的
+
+### QMutexLocker（§4-Step4）
+
+见 [[references/Qt核心类型#QMutex + QMutexLocker]]。
+
+### m_SendLock（§4-Step4）
+
+`BackgroudObj` 的成员变量（`myudpthread.h:145`），类型 `QMutex`。保护 `writeDatagram()` 不被多个调用者同时执行。
+
+### writeDatagram()（§4-Step4）
+
+见 [[references/Qt网络类#QUdpSocket]]。
+
+### QHostAddress（§4-Step4）
+
+见 [[references/Qt网络类#QHostAddress]]。
+
+### remotePort（§4-Step4）
+
+`SendThread` 的成员变量（`myudpthread.cpp:620`）。值 = 5001。IPC 命令的远端目标端口。
+
+---
+
+## 第 5 章出现的
+
+### initAll()（§5-Step1）
+
+`GlobalFlow` 的方法。程序启动时调用，初始化所有子系统（串口、UDP、定时器、MQTT 等）。详见 [[全局单例#myFlow (GlobalFlow)]]。
+
+### initSocket()（§5-Step1）
+
+`MyUdp` 的方法（`myudpthread.cpp:51-54`）。只做了一件事：`new SendThread(this)`。SendThread 的构造函数里自启动。
+
+### m_bInit（§5-Step2）
+
+`SendThread` 的成员变量（`myudpthread.cpp:629`）。初始值 `false`，`run()` 中 socket 初始化完成后设为 `true`。
+
+构造函数用 `while(!m_bInit) myFlow.msleep(5)` 等待这个标志——每 5ms 检查一次，直到 `run()` 把 socket 初始化好。
+
+### readyRead 信号（§5-Step2）
+
+`QUdpSocket` 的信号。当有 UDP 数据到达时，Qt 事件循环自动发射此信号。连接方式：
+
+```cpp
+connect(m_MySocket->udpSocket, SIGNAL(readyRead()), 
+        m_MySocket, SLOT(readPendingDatagrams()));
+```
+
+信号在 SendThread 的事件循环中被处理，所以 `readPendingDatagrams()` 在 SendThread 线程中执行。
+
+### bind()（§5-Step2）
+
+见 [[references/Qt网络类#QUdpSocket]]（Qt 版本）和 [[references/Socket编程基础#bind() — 绑定地址]]（BSD 版本）。
+
+### QUdpSocket（§5-Step2）
+
+见 [[references/Qt网络类#QUdpSocket]]。
+
+---
+
+## 第 5 章 Step 3 出现的
+
+### hasPendingDatagrams()（§5-Step3）
+
+`QUdpSocket` 的方法。返回 `bool`——是否有待读取的 UDP 数据报。
+
+### pendingDatagramSize()（§5-Step3）
+
+`QUdpSocket` 的方法。返回 `qint64`——下一个待读取数据报的字节数（不含 UDP 头，只有数据载荷）。
+
+### readDatagram()（§5-Step3）
+
+见 [[references/Qt网络类#QUdpSocket]]。
+
+### quint8（§5-Step3）
+
+Qt 自定义类型 = `unsigned char`（8 位无符号整数，0~255）。
+
+### IPC_IP_ADDR_BASE（§5-Step3）
+
+宏定义，在 `constant.h` 中。值为 `21`。
+
+`ipOffset = sender.toString().right(3).toInt() - IPC_IP_ADDR_BASE` 的含义：
+- 假设 `sender = "192.168.1.121"`
+- `right(3)` = `"121"`（取右边 3 个字符）
+- `toInt()` = 121
+- `ipOffset = 121 - 21 = 100`（推测是某种内部编号偏移）
+
+### m_pAttach->m_parent（§5-Step3）
+
+C++ 指针链：
+- `this` = `BackgroudObj*`
+- `m_pAttach` = `SendThread*`（BackgroudObj 构造时传入）
+- `m_parent` = `MyUdp*`（SendThread 构造时从 parent 参数保存）
+- 最终：`m_pAttach->m_parent` = `g_Udp` 的指针
+
+所以 `m_pAttach->m_parent->processTheDatagram(...)` 调用了 `MyUdp` 的解析函数。
+
+---
+
+## 第 5 章 Step 4 出现的
+
+### malloc() / free()（§5-Step4）
+
+见 [[references/C标准库函数#malloc(n) / free(ptr)]]。
+
+### QMap::key()（§5-Step4）
+
+`QMap` 的方法。反向查找——通过 value 找第一个匹配的 key。见 [[references/Qt核心类型#QMap<Key, Value>]]。
+
+### RecvPacket()（§5-Step4）
+
+`SendThread` 的方法（`myudpthread.cpp:849`）。根据回包的序列号 `seq`，在发送队列中找到匹配的包并标记为"已收到"，停止该包的超时重传。
+
+### & 0x7fff（§5-Step4）
+
+C/C++ 的按位与操作。`nCmd & 0x7fff` 将最高位（bit15）清零：
+
+```
+0x8004 & 0x7fff → 0x0004
+0x0004 & 0x7fff → 0x0004
+```
+
+原因：协议设计者曾用 bit15 表示"需要回包"，在解析时不需要这个位。
+
+### switch(nCmd)（§5-Step4）
+
+C/C++ 的多分支语句。根据 `nCmd` 的值跳转到对应的 `case` 标签。`break` 退出 switch 块（没有 `break` 会"穿透"到下一个 case）。
+
+---
+
+## 第 6 章出现的
+
+### 全局共享数据（§6）
+
+多个线程通过全局结构体交换数据，这是一种**无锁共享**策略。发送线程写入，UI 线程定时读取。由于不需要严格的事务一致性（UI 显示差几十毫秒无所谓），不需要加锁。
+
+### QTimer（§6）
+
+UI 侧每秒从 `struIpcShare` 读取数据并刷新界面。见 [[references/Qt核心类型#QTimer]]。
+
+---
+
+## 第 8 章出现的
+
+### 命令字宏（§8）
+
+`#define CMD_UDP_IPC_REQ_INFO 0x0001` 这样的宏定义，在预处理阶段将宏名替换为数值。方便可读性——写 `CMD_UDP_IPC_REQ_INFO` 比写 `0x0001` 容易理解。
+
+### 0x0004 vs 4（§8）
+
+C/C++ 中 `0x0004` 是十六进制表示法，值和 `4` 一样。写 `0x0004` 是为了和协议文档中的十六进制命令字对齐，方便对照。
