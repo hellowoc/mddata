@@ -137,7 +137,7 @@ void BaseUi::paintEvent(QPaintEvent *)
 
 ---
 
-## 理解
+## 本质理解
 
 ```
 QSS 文件 = 规则仓库
@@ -156,5 +156,3 @@ QSS 文件 = 规则仓库
 | 一个统一的 skin.qss 文件 + LoadSkin() | **改一个文件就换一套皮肤**，换品牌色/换字体/适配不同屏幕，全部集中在 QSS 里 |
 
 这个项目有两套 QSS 文件：`skin.qss`、`skin_1024_600.qss`、`skin_1024_768.qss`——不同屏幕分辨率用不同的样式文件，`LoadSkin()` 根据 `screenH` 自动选。
-
-

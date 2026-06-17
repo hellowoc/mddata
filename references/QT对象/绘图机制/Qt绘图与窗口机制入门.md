@@ -156,16 +156,16 @@ Qt 不是你想画就立刻画。它遵循**事件驱动的绘制模型**：
 
 ### 绘图相关
 
-| 类        | 作用                                |
-| -------- | --------------------------------- |
-| QPainter | 画笔，所有 drawXxx() 的入口[[references/QT对象/绘图机制/QPainter详解]] |
-| QPen     | 笔（轮廓线）：颜色、粗细、虚实                   |
-| QBrush   | 刷（填充）：颜色、渐变、纹理                    |
-| QFont    | 字体                                |
-| QColor   | 颜色                                |
-| QPixmap  | 位图（适合显示，存在显存）                     |
-| QImage   | 图像（适合处理，存在内存）                     |
-| QStyle   | 样式引擎（QSS 背后就是它）                   |
+| 类 | 作用 |
+|----|------|
+| QPainter | 画笔，所有 drawXxx() 的入口 |
+| QPen | 笔（轮廓线）：颜色、粗细、虚实 |
+| QBrush | 刷（填充）：颜色、渐变、纹理 |
+| QFont | 字体 |
+| QColor | 颜色 |
+| QPixmap | 位图（适合显示，存在显存） |
+| QImage | 图像（适合处理，存在内存） |
+| QStyle | 样式引擎（QSS 背后就是它） |
 
 ### 窗口相关
 
@@ -191,7 +191,7 @@ Qt 不是你想画就立刻画。它遵循**事件驱动的绘制模型**：
 // ZKSort 的主体布局就是这种
 ```
 
-**场景 2：QSS + paintEvent 让样式生效**[[references/QT对象/绘图机制/QSS样式渲染详解]]
+**场景 2：QSS + paintEvent 让样式生效**
 
 ```cpp
 void paintEvent(QPaintEvent *) {

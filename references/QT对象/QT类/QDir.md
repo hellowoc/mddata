@@ -6,28 +6,28 @@
 
 ## 核心功能
 
-| 类别     | 常用方法                  | 说明                       |
-| ------ | --------------------- | ------------------------ |
-| 静态特殊路径 | `homePath()`          | 用户主目录                    |
-|        | `tempPath()`          | 系统临时目录                   |
-|        | `currentPath()`       | 当前工作目录                   |
-|        | `rootPath()`          | 根目录                      |
-|        | `drives()`            | Windows 驱动器列表            |
-| 路径操作   | `absolutePath()`      | 返回绝对路径                   |
-|        | `canonicalPath()`     | 规范化路径（解析符号链接）            |
-|        | `relativeFilePath()`  | 计算相对路径                   |
-| 存在性判断  | `exists()`            | 目录是否存在                   |
-|        | `isAbsolutePath()`    | 是否为绝对路径                  |
-|        | `isRelativePath()`    | 是否为相对路径                  |
-| 目录管理   | `mkdir()`             | 创建单级目录                   |
-|        | `mkpath()`            | 创建多级目录（类似 `mkdir -p`）    |
-|        | `rmdir()`             | 删除空目录                    |
-|        | `removeRecursively()` | 递归删除目录及所有内容              |
-| 目录遍历   | `entryList()`         | 返回文件名列表                  |
-|        | `entryInfoList()`     | 返回 `QFileInfo` 列表[[entryInfoList() 方法]] |
-| 过滤与排序  | `setNameFilters()`    | 设置文件名过滤器                 |
-|        | `setFilter()`         | 设置条目类型过滤器                |
-|        | `setSorting()`        | 设置排序方式                   |
+| 类别 | 常用方法 | 说明 |
+|------|---------|------|
+| 静态特殊路径 | `homePath()` | 用户主目录 |
+| | `tempPath()` | 系统临时目录 |
+| | `currentPath()` | 当前工作目录 |
+| | `rootPath()` | 根目录 |
+| | `drives()` | Windows 驱动器列表 |
+| 路径操作 | `absolutePath()` | 返回绝对路径 |
+| | `canonicalPath()` | 规范化路径（解析符号链接） |
+| | `relativeFilePath()` | 计算相对路径 |
+| 存在性判断 | `exists()` | 目录是否存在 |
+| | `isAbsolutePath()` | 是否为绝对路径 |
+| | `isRelativePath()` | 是否为相对路径 |
+| 目录管理 | `mkdir()` | 创建单级目录 |
+| | `mkpath()` | 创建多级目录（类似 `mkdir -p`） |
+| | `rmdir()` | 删除空目录 |
+| | `removeRecursively()` | 递归删除目录及所有内容 |
+| 目录遍历 | `entryList()` | 返回文件名列表 |
+| | `entryInfoList()` | 返回 `QFileInfo` 列表 |
+| 过滤与排序 | `setNameFilters()` | 设置文件名过滤器 |
+| | `setFilter()` | 设置条目类型过滤器 |
+| | `setSorting()` | 设置排序方式 |
 
 ## 基础用法示例
 
